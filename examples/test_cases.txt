@@ -1,0 +1,410 @@
+════════════════════════════════════════════════════════════════════
+  ANALIZADOR SEMÁNTICO PASCAL - CASOS DE PRUEBA
+  24 Ejemplos: 10 válidos + 14 con errores semánticos
+  Lenguajes y Autómatas II
+════════════════════════════════════════════════════════════════════
+
+
+╔══════════════════════════════════════════════════════════════════╗
+║  SECCIÓN 1: PROGRAMAS VÁLIDOS (10 EJEMPLOS)                     ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+────────────────────────────────────────
+EJEMPLO 1 - Declaración y asignación básica
+Descripción: Programa mínimo con variables enteras correctamente declaradas y asignadas.
+────────────────────────────────────────
+program Ejemplo1;
+var
+  x, y: integer;
+begin
+  x := 10;
+  y := 20;
+  writeln(x + y)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 2 - Múltiples tipos de datos
+Descripción: Uso correcto de integer, real, boolean, char y string en un mismo programa.
+────────────────────────────────────────
+program Ejemplo2;
+var
+  edad: integer;
+  promedio: real;
+  activo: boolean;
+  inicial: char;
+  nombre: string;
+begin
+  edad := 25;
+  promedio := 9.5;
+  activo := true;
+  inicial := 'J';
+  nombre := 'Juan Perez';
+  writeln(nombre, edad)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 3 - Promoción de tipo integer a real
+Descripción: Asignar un integer a una variable real es válido (promoción automática).
+────────────────────────────────────────
+program Ejemplo3;
+var
+  entero: integer;
+  decimal: real;
+begin
+  entero := 42;
+  decimal := entero;
+  writeln(decimal)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 4 - Estructura IF...THEN...ELSE
+Descripción: Condicional con expresión booleana válida y ramas correctamente tipadas.
+────────────────────────────────────────
+program Ejemplo4;
+var
+  nota: integer;
+  aprobado: boolean;
+begin
+  nota := 85;
+  aprobado := nota >= 70;
+  if aprobado then
+    writeln('Aprobado')
+  else
+    writeln('Reprobado')
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 5 - Ciclo WHILE...DO
+Descripción: Ciclo while con condición booleana y actualización de variable de control.
+────────────────────────────────────────
+program Ejemplo5;
+var
+  contador: integer;
+begin
+  contador := 1;
+  while contador <= 10 do
+  begin
+    writeln(contador);
+    contador := contador + 1
+  end
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 6 - Ciclo FOR...TO...DO
+Descripción: Ciclo for con variable de control integer y rango válido.
+────────────────────────────────────────
+program Ejemplo6;
+var
+  i, suma: integer;
+begin
+  suma := 0;
+  for i := 1 to 100 do
+    suma := suma + i;
+  writeln('Suma del 1 al 100: ', suma)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 7 - Ciclo REPEAT...UNTIL
+Descripción: Ciclo repeat con condición booleana de salida.
+────────────────────────────────────────
+program Ejemplo7;
+var
+  n: integer;
+begin
+  n := 10;
+  repeat
+    writeln(n);
+    n := n - 1
+  until n = 0;
+  writeln('Cuenta regresiva terminada')
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 8 - Expresiones aritméticas mixtas
+Descripción: Operaciones entre integer y real producen real (compatibilidad correcta).
+────────────────────────────────────────
+program Ejemplo8;
+var
+  a, b: integer;
+  c: real;
+begin
+  a := 15;
+  b := 4;
+  c := a / b;
+  writeln('Division: ', c);
+  c := a * 2 + b;
+  writeln('Expresion: ', c)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 9 - Operaciones booleanas
+Descripción: Uso correcto de and, or, not con variables boolean.
+────────────────────────────────────────
+program Ejemplo9;
+var
+  p, q, r: boolean;
+begin
+  p := true;
+  q := false;
+  r := p and q;
+  writeln(r);
+  r := p or q;
+  writeln(r);
+  r := not q;
+  writeln(r)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 10 - Programa completo con múltiples estructuras
+Descripción: Combina declaraciones, condicionales, ciclos y operaciones correctamente.
+────────────────────────────────────────
+program Ejemplo10;
+var
+  i, n, suma: integer;
+  promedio: real;
+  aprobado: boolean;
+begin
+  n := 5;
+  suma := 0;
+
+  for i := 1 to n do
+    suma := suma + i;
+
+  promedio := suma / n;
+  aprobado := promedio >= 3;
+
+  if aprobado then
+    writeln('Aprobado con promedio: ', promedio)
+  else
+    writeln('Reprobado');
+
+  i := 10;
+  repeat
+    i := i - 2
+  until i <= 0;
+
+  writeln('Programa finalizado')
+end.
+
+
+
+╔══════════════════════════════════════════════════════════════════╗
+║  SECCIÓN 2: PROGRAMAS CON ERRORES SEMÁNTICOS (10 EJEMPLOS)     ║
+╚══════════════════════════════════════════════════════════════════╝
+
+
+────────────────────────────────────────
+EJEMPLO 11 - Variable no declarada
+Error: Se usa la variable 'y' sin haberla declarado en la sección VAR.
+────────────────────────────────────────
+program Error1;
+var
+  x: integer;
+begin
+  x := 10;
+  y := 20
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 12 - Redeclaración de variable
+Error: La variable 'x' se declara dos veces en el mismo scope.
+────────────────────────────────────────
+program Error2;
+var
+  x: integer;
+  y: real;
+  x: string;
+begin
+  x := 10;
+  y := 3.14
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 13 - Incompatibilidad de tipos en asignación
+Error: Se intenta asignar un string a una variable de tipo integer.
+────────────────────────────────────────
+program Error3;
+var
+  edad: integer;
+begin
+  edad := 'veinte'
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 14 - Operación entre tipos incompatibles
+Error: No se puede sumar un integer con un boolean.
+────────────────────────────────────────
+program Error4;
+var
+  a: integer;
+  b: boolean;
+  c: integer;
+begin
+  a := 10;
+  b := true;
+  c := a + b
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 15 - Condición IF no booleana
+Error: La condición del IF es de tipo integer en lugar de boolean.
+────────────────────────────────────────
+program Error5;
+var
+  x: integer;
+begin
+  x := 42;
+  if x then
+    writeln('No deberia compilar')
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 16 - Variable de control FOR no integer
+Error: La variable de control del FOR debe ser integer, pero es real.
+────────────────────────────────────────
+program Error6;
+var
+  i: real;
+begin
+  for i := 1 to 10 do
+    writeln(i)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 17 - Asignación de real a integer
+Error: No se puede asignar un real a un integer (pérdida de precisión).
+────────────────────────────────────────
+program Error7;
+var
+  x: integer;
+begin
+  x := 3.14
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 18 - Uso de variable no inicializada
+Error: Se usa la variable 'total' en una expresión sin asignarle valor previamente.
+────────────────────────────────────────
+program Error8;
+var
+  total: integer;
+  resultado: integer;
+begin
+  resultado := total + 10
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 19 - Condición WHILE no booleana
+Error: La condición del WHILE debe ser boolean, pero recibe un string.
+────────────────────────────────────────
+program Error9;
+var
+  mensaje: string;
+begin
+  mensaje := 'hola';
+  while mensaje do
+    writeln(mensaje)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 20 - Múltiples errores semánticos combinados
+Errores: Variable no declarada, incompatibilidad de tipos y redeclaración.
+────────────────────────────────────────
+program Error10;
+var
+  x: integer;
+  nombre: string;
+  x: real;
+begin
+  x := 10;
+  nombre := 42;
+  resultado := x + nombre;
+  if x then
+    writeln(z)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 21 - Modificación de variable de control FOR
+Error: No se puede modificar 'i' dentro del cuerpo del FOR.
+────────────────────────────────────────
+program Error11;
+var
+  i, suma: integer;
+begin
+  suma := 0;
+  for i := 1 to 10 do
+  begin
+    suma := suma + i;
+    i := i + 2
+  end;
+  writeln(suma)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 22 - Variable declarada pero nunca utilizada
+Warning: La variable 'temp' se declara pero nunca se referencia.
+────────────────────────────────────────
+program Error12;
+var
+  x: integer;
+  temp: real;
+  resultado: integer;
+begin
+  x := 5;
+  resultado := x * 2;
+  writeln(resultado)
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 23 - NOT aplicado a tipo no boolean
+Error: El operador NOT solo acepta operandos de tipo boolean.
+────────────────────────────────────────
+program Error13;
+var
+  x: integer;
+  flag: boolean;
+begin
+  x := 42;
+  flag := not x
+end.
+
+
+────────────────────────────────────────
+EJEMPLO 24 - Operadores DIV y MOD con real
+Error: Los operadores DIV y MOD solo aceptan operandos integer.
+────────────────────────────────────────
+program Error14;
+var
+  a: real;
+  b: integer;
+begin
+  a := 10.5;
+  b := a div 3
+end.
+
+
+════════════════════════════════════════════════════════════════════
+  FIN DE LOS CASOS DE PRUEBA
+════════════════════════════════════════════════════════════════════

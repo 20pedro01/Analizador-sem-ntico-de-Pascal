@@ -1,0 +1,176 @@
+================================================================================
+MANUAL DE USUARIO
+ANALIZADOR SEMÁNTICO PARA LENGUAJE PASCAL
+================================================================================
+
+ASIGNATURA: Lenguajes y Autómatas II
+PROYECTO:   Software Analizador Semántico (PHP -> Pascal)
+VERSIÓN:    1.0.0
+
+--------------------------------------------------------------------------------
+1. INTRODUCCIÓN
+--------------------------------------------------------------------------------
+Este software permite verificar la corrección semántica de programas escritos en 
+lenguaje Pascal. A diferencia de un simple compilador que solo revisa la 
+sintaxis (gramática), este analizador verifica el SIGNIFICADO y la COHERENCIA 
+del código, asegurando que:
+
+1. Los tipos de datos sean compatibles (no sumar texto con números).
+2. Las variables estén declaradas antes de usarse.
+3. No existan ambigüedades (redeclaración de variables).
+4. Se respeten las reglas de alcance (scope) y constantes.
+
+--------------------------------------------------------------------------------
+2. REQUISITOS DE INSTALACIÓN
+--------------------------------------------------------------------------------
+Para ejecutar este programa necesita:
+- Un intérprete de PHP 8.0 o superior instalado en su sistema.
+- Un navegador web moderno (Chrome, Firefox, Edge).
+- (Opcional) Un servidor local como XAMPP o WAMP si desea usarlo en Apache.
+
+--------------------------------------------------------------------------------
+3. MODOS DE EJECUCIÓN
+--------------------------------------------------------------------------------
+
+A. MODO INTERFAZ WEB (Recomendado)
+   Es la forma más visual e interactiva de usar la herramienta.
+   
+   1. Abra una terminal (CMD o PowerShell) en la carpeta del proyecto.
+   2. Ejecute el comando:
+      php -S localhost:8080
+   3. Abra su navegador web e ingrese a: http://localhost:8080
+
+B. MODO CONSOLA (Para pruebas rápidas)
+   1. Abra una terminal en la carpeta del proyecto.
+   2. Para verificar todos los ejemplos automáticamente:
+      php verify_examples.php
+
+--------------------------------------------------------------------------------
+4. GUÍA DE USO PASO A PASO (INTERFAZ WEB)
+--------------------------------------------------------------------------------
+
+PASO 1: CARGAR CÓDIGO
+En la pantalla principal verá un editor de texto grande.
+- Opción A: Escriba su código Pascal directamente.
+- Opción B: Haga clic en los botones de "Ejemplos" en la barra lateral para 
+  cargar códigos predefinidos (Correctos o Incorrectos).
+
+PASO 2: INICIAR ANÁLISIS
+Haga clic en el botón morado "ANALIZAR CÓDIGO".
+El sistema procesará el código en tres fases:
+1. Análisis Léxico (Tokenización)
+2. Análisis Sintáctico (Parsing)
+3. Análisis Semántico (Validación de tipos y scopes)
+
+PASO 3: INTERPRETAR RESULTADOS
+
+ESCENARIO A: CÓDIGO CORRECTO
+Si el código cumple todas las reglas, verá:
+1. Un mensaje verde indicando "COMPILACIÓN EXITOSA".
+2. La "TABLA DE SÍMBOLOS" generada, que muestra todas las variables detectadas.
+
+ESCENARIO B: ERRORES SEMÁNTICOS
+Si el código tiene fallas lógicas, verá:
+1. Una lista de errores en rojo.
+2. Cada error indica:
+   - Línea: Dónde ocurrió el error.
+   - Tipo: Semántico, Sintáctico o Léxico.
+   - Descripción: Explicación detallada del problema (ej: "No se puede sumar Integer con String").
+
+--------------------------------------------------------------------------------
+5. INTERPRETACIÓN DE LA TABLA DE SÍMBOLOS
+--------------------------------------------------------------------------------
+La tabla de símbolos es la evidencia de que el analizador "entiende" el código.
+Columnas:
+
+- NOMBRE: El identificador de la variable (ej: 'resultado', 'x').
+- TIPO: El tipo de dato (Integer, Real, Boolean, String).
+- SCOPE: Dónde vive la variable ('global' o dentro de una función).
+- LÍNEA: Número de línea donde se declaró.
+- INICIALIZADA: 'Sí' si se le asignó valor, 'No' si está vacía.
+- CATEGORÍA: Si es 'variable', 'constante' o 'parametro'.
+- USOS: Cuántas veces se utilizó en el código.
+
+--------------------------------------------------------------------------------
+6. EJEMPLOS DE ANÁLISIS (Entrada y Salida)
+--------------------------------------------------------------------------------
+
+CASO 1: VALIDACIÓN DE TIPOS (INCORRECTO)
+----------------------------------------
+Código Fuente:
+   VAR x: INTEGER;
+   BEGIN
+     x := 'Hola Mundo';
+   END.
+
+Resultado Esperado:
+   [ERROR SEMÁNTICO] Línea 3: Incompatibilidad de tipos: no se puede asignar 
+   'string' a variable 'x' de tipo 'integer'.
+
+Análisis:
+   El sistema detectó que 'x' fue declarada como entero, pero se intentó guardar
+   una cadena de texto. Esto viola la regla de Tipado Estático de Pascal.
+
+
+CASO 2: PROTECCIÓN DE CONSTANTES (INCORRECTO)
+---------------------------------------------
+Código Fuente:
+   CONST Pi = 3.1416;
+   BEGIN
+     Pi := 3.15;
+   END.
+
+Resultado Esperado:
+   [ERROR SEMÁNTICO] Línea 3: No se puede asignar valor a la constante 'Pi'. 
+   Las constantes son de solo lectura.
+
+Análisis:
+   El analizador semántico identifica que 'Pi' tiene la categoría de 'constante' 
+   en la tabla de símbolos y bloquea cualquier intento de escritura posterior.
+
+
+CASO 3: SCOPE Y SOMBREADO (CORRECTO)
+------------------------------------
+Código Fuente:
+   VAR x: INTEGER;
+   PROCEDURE Test;
+     VAR x: BOOLEAN; { Variable local 'x' oculta a la global 'x' }
+     BEGIN
+       x := TRUE;   { Accede a la local (boolean) }
+     END;
+   BEGIN
+     x := 10;       { Accede a la global (integer) }
+   END.
+
+Resultado Esperado:
+   COMPILACIÓN EXITOSA.
+   
+   Tabla de Símbolos:
+   | Nombre | Tipo    | Scope  |
+   |--------|---------|--------|
+   | x      | integer | global |
+   | x      | boolean | test   |
+
+Análisis:
+   El sistema maneja correctamente dos variables con el mismo nombre 'x' porque 
+   viven en scopes diferentes. La asignación dentro del procedimiento usa el 
+   tipo correcto (boolean) y la global usa integer.
+
+--------------------------------------------------------------------------------
+7. PREGUNTAS FRECUENTES Y SOLUCIÓN DE PROBLEMAS
+--------------------------------------------------------------------------------
+
+P: ¿Por qué obtengo un error "Variable no declarada"?
+R: Pascal requiere que TODAS las variables se definan en la sección VAR antes 
+   del BEGIN. Verifique que no haya escrito mal el nombre.
+
+P: ¿Por qué dice "Se esperaba ';'" pero la línea parece correcta?
+R: El error suele estar en la línea ANTERIOR a la señalada. Verifique que la 
+   sentencia previa termine con punto y coma.
+
+P: ¿Soporta funciones recursivas?
+R: Sí, siempre y cuando se respete la firma de la función declarada.
+
+================================================================================
+FIN DEL MANUAL DE USUARIO
+================================================================================
