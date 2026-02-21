@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Manual de usuario - Analizador Pascal</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h3 {
+            color: #16a085;
+            margin-top: 20px;
+        }
+
+        code {
+            background-color: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #c7254e;
+        }
+
+        pre {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            overflow-x: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        .note {
+            background-color: #e8f6f3;
+            border-left: 5px solid #1abc9c;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .error-example {
+            background-color: #fdeaea;
+            border-left: 5px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .header-info {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header-info">
+        <h1>Manual de usuario</h1>
+        <h2>Analizador semántico para Pascal</h2>
+        <p><strong>Asignatura:</strong> Lenguajes y Autómatas II<br>
+            <strong>Versión:</strong> 1.0.0
+        </p>
+    </div>
+
+    <div class="note" style="border-left-color: #9b59b6; background-color: #f5eef8;">
+        <strong>Descarga de código fuente:</strong>
+        Para ejecutar este proyecto en su propio servidor local o inspeccionar el código, puede descargar el proyecto
+        completo desde nuestro repositorio oficial en GitHub:
+        <a href="https://github.com/20pedro01/Analizador-sem-ntico-de-Pascal"
+            target="_blank">https://github.com/20pedro01/Analizador-sem-ntico-de-Pascal</a><br>
+    </div>
+
+    <h2>1. Introducción</h2>
+    <p>
+        Este software es una herramienta diseñada para verificar la corrección semántica de programas escritos en
+        lenguaje Pascal. Su objetivo principal es ir más allá de la revisión sintáctica básica, asegurando que
+        el código tenga sentido lógico y cumpla con las reglas de tipado estricto del lenguaje.
+    </p>
+    <p>El sistema valida de forma exhaustiva:</p>
+    <ul>
+        <li><strong>Compatibilidad de tipos de datos estricta:</strong> Evita asignaciones inválidas, controla
+            operaciones aritméticas, relacionales y lógicas, prohibiendo el <em>narrowing</em> automático (ejemplo de
+            Real a
+            Integer).</li>
+        <li><strong>Declaración e inicialización:</strong> Verifica que las variables existan antes de usarse y advierte
+            si se leen sin valor inicial.</li>
+        <li><strong>Alcance (scope) y ambigüedad:</strong> Soporta múltiples niveles de anidamiento, detectando
+            colisiones de nombres (shadowing) y ambigüedades de tipo entre scopes.</li>
+        <li><strong>Control de ciclo FOR:</strong> Protege la variable iteradora contra modificaciones internas y exige
+            que sea de tipo ordinal.</li>
+        <li><strong>Subprogramas (funciones y procedimientos):</strong> Exige la asignación obligatoria de valores de
+            retorno, prohíbe ignorar llamadas a funciones y valida estrictamente la cantidad y los tipos de parámetros
+            enviados.</li>
+        <li><strong>Arreglos (arrays):</strong> Evalúa matemáticamente las expresiones de los índices, exigiendo siempre
+            resultados enteros.</li>
+    </ul>
+
+    <h2>2. Requisitos del sistema</h2>
+    <ul>
+        <li><strong>Sistema operativo:</strong> Windows, Linux o macOS.</li>
+        <li><strong>Lenguaje base:</strong> PHP 8.0 o superior.</li>
+        <li><strong>Navegador:</strong> Chrome, Firefox, Safari o Edge.</li>
+    </ul>
+
+    <h2>3. Guía de uso (interfaz web)</h2>
+
+    <h3>Paso 1: Abrir la aplicación</h3>
+    <ol>
+        <li>Navegue a la carpeta del proyecto.</li>
+        <li>Ejecute el servidor local con el comando:
+            <code>php -S localhost:XXXX </code>(sustituya las XXXX por la dirección real de su servidor, ejemplo 8080).
+        </li>
+        <li>Abra su navegador en
+            <code>http://localhost:XXXX </code>
+            (sustituya las XXXX por la dirección real de su servidor).
+        </li>
+    </ol>
+
+    <h3>Paso 2: Cargar o escribir código</h3>
+    <p>En el editor principal, puede escribir su código Pascal. Para facilitar las pruebas, utilice la barra lateral:
+    </p>
+    <ul>
+        <li><strong>Botones verdes:</strong> Cargan ejemplos que compilan correctamente.</li>
+        <li><strong>Botones rojos:</strong> Cargan ejemplos con errores intencionales para probar el validador.</li>
+    </ul>
+    </li>
+    <p></p>
+    <p>También puede añadir archivos .pas desde su computadora.</p>
+
+
+
+    <h3>Paso 3: Analizar</h3>
+    <p>Haga clic en el botón <strong>"Analizar código"</strong>. El sistema procesará el texto lexicamente,
+        sintácticamente y semánticamente.</p>
+
+    <h2>4. Interpretación de resultados</h2>
+
+    <h3>Escenario A: Compilación exitosa</h3>
+    <p>Si el código es correcto, verá un mensaje verde de éxito y la <strong>Tabla de símbolos</strong> generada.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Scope</th>
+                <th>Categoría</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>x</td>
+                <td>Integer</td>
+                <td>Global</td>
+                <td>Variable</td>
+            </tr>
+            <tr>
+                <td>Pi</td>
+                <td>Real</td>
+                <td>Global</td>
+                <td>Constante</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Escenario B: Errores semánticos</h3>
+    <p>Si hay errores, se mostrará una lista detallada indicando la línea y la causa.</p>
+
+    <div class="error-example">
+        <strong>Ejemplo de error:</strong><br>
+        <em>[Línea 4] Incompatibilidad de tipos: no se puede asignar 'string' a variable 'count' de tipo 'integer'.</em>
+    </div>
+
+    <h3>Caso 1: Error de tipado estructural (narrowing y operadores)</h3>
+    <pre>
+VAR iterador: INTEGER;
+    flag: BOOLEAN;
+BEGIN
+  iterador := 3.1416; { ❌ Error: Asignando Real a Entero }
+  flag := iterador + 5; { ❌ Error: Operación aritmética no compatible con Boolean }
+END.</pre>
+    <p><strong>Explicación:</strong> Pascal es fuertemente tipado. No permite asignar decimales a enteros sin conversión
+        explícita (Trunc/Round) ni mezclar aritméticas en tipos lógicos.</p>
+
+    <h3>Caso 2: Error de ambigüedad (shadowing)</h3>
+    <pre>
+VAR varLocal: INTEGER;
+
+PROCEDURE Test;
+VAR varLocal: BOOLEAN;
+BEGIN
+  varLocal := TRUE; 
+END;
+BEGIN
+  varLocal := 10;
+END.</pre>
+    <p><strong>Explicación:</strong> Aunque es sintácticamente válido redifinir una variable en un scope local, el
+        analizador lo marca como un error crítico de <strong>Ambigüedad de tipo</strong> porque <code>varLocal</code> es
+        entero a nivel global pero booleano a nivel local, siendo una alta fuente de bugs.</p>
+
+    <h3>Caso 3: Verificación estricta de subprogramas</h3>
+    <pre>
+PROCEDURE MiProc(x: INTEGER; y: BOOLEAN);
+BEGIN
+  x := x + 1;
+END;
+
+FUNCTION CalculaVentas: INTEGER;
+BEGIN
+  x := 10;
+  { ❌ Error: Función termina sin devolver valor }
+END;
+
+BEGIN
+  MiProc(10, 20); { ❌ Error: El parámetro 2 esperaba BOOLEAN, se obtuvo INTEGER }
+  CalculaVentas;  { ⚠️ Warning: Valor de retorno ignorado }
+END.</pre>
+    <p><strong>Explicación:</strong> El analizador verifica individualmente cada argumento enviado a un subprograma.
+        Además, asegura que las funciones siempre asignen su valor de retorno a sí mismas y que quien las llama
+        realmente utilice dicho resultado.</p>
+
+    <h3>Caso 4: Acceso a arreglos</h3>
+    <pre>
+VAR Arr: ARRAY[1..10] OF INTEGER;
+    Indice: STRING;
+BEGIN
+  Indice := 'Cinco';
+  Arr[Indice] := 100; { ❌ Error: El índice debe ser INTEGER }
+END.</pre>
+    <p><strong>Explicación:</strong> No basta con que una variable sea un arreglo; cualquier expresión utilizada entre
+        corchetes <code>[]</code> será evaluada para garantizar que matemáticamente resulte en un número entero.</p>
+
+
+    <h2>6. Solución de problemas</h2>
+    <p><strong>P: ¿El analizador se queda en blanco?</strong><br>
+        R: Asegúrese de que su código PHP tenga permisos de ejecución y que no haya errores de sintaxis en el archivo
+        <code>index.php</code>.
+    </p>
+
+    <p><strong>P: ¿Por qué marca error en la última línea?</strong><br>
+        R: Verifique que el programa termina con <code>END.</code> (con punto final).</p>
+
+</body>
+
+</html>

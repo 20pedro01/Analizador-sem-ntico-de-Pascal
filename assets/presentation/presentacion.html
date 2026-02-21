@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Analizador Semántico de Pascal</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-deep: #10002b;
+            --bg-purple: #240046;
+            --bg-panel: rgba(60, 9, 108, 0.75);
+            --accent: #e0aaff;
+            --accent-glow: rgba(224, 170, 255, 0.5);
+            --highlight: #ff9e00;
+            --text-main: #ffffff;
+            --text-sec: #e0c3fc;
+            --code-bg: #19002e;
+            --border-color: rgba(224, 170, 255, 0.2);
+            --success-color: #52b788;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 0%, #5a189a, var(--bg-deep));
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.75rem;
+            color: #fff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #fff, #e0aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            border-bottom: 2px solid var(--accent);
+            display: inline-block;
+            padding-bottom: 0.4rem;
+        }
+
+        p,
+        li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-sec);
+            margin-bottom: 0.6rem;
+        }
+
+        .fs-4 {
+            font-size: 1.15rem !important;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide.active .panel {
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .slide.active h1,
+        .slide.active h2 {
+            animation: fadeInUp 0.6s ease 0.1s both;
+        }
+
+        .slide.active p,
+        .slide.active li,
+        .slide.active .text-sec {
+            animation: fadeInUp 0.6s ease 0.3s both;
+        }
+
+        .slide.active .row,
+        .slide.active .schema-box,
+        .slide.active .code-container {
+            animation: fadeInUp 0.6s ease 0.5s both;
+        }
+
+        .slide {
+            display: none;
+            box-sizing: border-box;
+            height: 100vh;
+            padding: 0 4vw;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            z-index: 10;
+        }
+
+        strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.2rem;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 1300px;
+            max-height: 88vh;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 5px;
+        }
+
+        .nav-controls {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1.5rem;
+            z-index: 100;
+            background: rgba(16, 0, 43, 0.9);
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .nav-btn:hover {
+            color: #fff;
+            transform: scale(1.2);
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .page-indicator {
+            color: #fff;
+            align-self: center;
+            font-weight: bold;
+            font-family: 'JetBrains Mono';
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #slideInput {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--accent);
+            color: #fff;
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 0;
+            margin: 0;
+            outline: none;
+            appearance: textfield;
+            -moz-appearance: textfield;
+        }
+
+        .schema-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--accent);
+            padding: 1.5rem;
+            border-radius: 0.9rem;
+            color: #fff;
+            text-align: center;
+            height: 100%;
+        }
+
+        .arrow {
+            color: var(--highlight);
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        code.inline {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono';
+            color: var(--highlight);
+        }
+
+        .code-container {
+            position: relative;
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .code-container pre {
+            margin: 0;
+            color: #e0c3fc;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--bg-purple);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent);
+            color: var(--bg-deep);
+        }
+
+        /* Imágenes Laterales */
+        .side-img-left {
+            animation: float 6s ease-in-out infinite, slideInLeft 1s ease-out;
+        }
+
+        .side-img-right {
+            animation: float 6s ease-in-out infinite reverse, slideInRight 1s ease-out;
+        }
+
+        .logo-container img {
+            max-height: 90px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. PORTADA -->
+    <section class="slide active">
+        <!-- Imágenes Equipo a los lados (Comentadas hasta tener los archivos)
+        <div class="side-img-left" style="position: absolute; left: 1.5vw; bottom: 0; width: 20vw; z-index: 1;">
+            <img src="1.png"
+                style="width: 100%; mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent 100%); -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent 100%);">
+        </div>
+        <div class="side-img-right" style="position: absolute; right: 1.5vw; bottom: 0; width: 20vw; z-index: 1;">
+            <img src="2.png"
+                style="width: 100%; mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent 100%); -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 50%, transparent 100%);">
+        </div>
+        -->
+
+        <div class="panel text-center" style="max-width: 800px; z-index: 5;">
+            <div class="logo-container">
+                <img src="../img/logo.png" alt="Logo Universidad"
+                    onerror="this.style.display='none'; document.getElementById('logo-text').style.display='block';">
+                <h2 id="logo-text" style="display:none; color:var(--accent);">ITSVA</h2>
+            </div>
+
+            <h1>Analizador semántico de Pascal</h1>
+            <p class="fs-4 text-sec mb-4">Unidad 1: Análisis semántico</p>
+
+            <div class="row justify-content-center mt-4 border-top border-secondary pt-4">
+                <div class="col-md-5 text-end pe-4 border-end border-secondary">
+                    <h4 class="text-white">Institución</h4>
+                    <p>TECNM Campus Valladolid</p>
+                    <p>Ing. Sistemas Computacionales</p>
+                    <p><strong>Lenguajes y Autómatas II</strong></p>
+                    <p>6° "C"</p>
+                </div>
+                <div class="col-md-6 text-start ps-4">
+                    <h4 class="text-white">Equipo de desarrollo:</h4>
+                    <ul class="list-unstyled mb-0">
+                        <li>Cauich Pat Pedro Antonio</li>
+                        <li>Chan Xooc Brenda Argelia</li>
+                        <li>Corona Noh Gabriel Danneshe</li>
+                        <li>Estrella Dzul Reyna Saray</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-4 pt-2">
+                <p class="text-highlight fs-5 mb-0"><strong>Docente: Maestro José Leonel Pech May</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. ANALISIS SEMANTICO VISION GLOBAL (Analogía) -->
+    <section class="slide">
+        <div class="panel">
+            <div class="row align-items-center h-100">
+                <div class="col-lg-7">
+                    <h2>1. ¿Qué es el análisis semántico? 🌳</h2>
+                    <p class="mt-3 fs-5">
+                        Incluso un código perfectamente escrito puede estar lleno de errores lógicos que la estructura
+                        (gramática) no detectará.
+                        El análisis semántico es el "detective" que valida que todo tenga sentido y respete las reglas.
+                    </p>
+                    <div class="mt-4 p-3 rounded"
+                        style="background: rgba(0,0,0,0.3); border-left: 3px solid var(--highlight);">
+                        <h4 class="text-white">Analogía de lenguaje común:</h4>
+                        <p class="fs-5 mb-1"><span class="text-success">"La casa se comió al pájaro azul."</span></p>
+                        <p class="mb-0">
+                            <strong>Sintaxis:</strong> ✅ Sujeto + Verbo + Predicado (perfectamente gramatical).<br>
+                            <strong>Semántica:</strong> ❌ Ilógico total. Una casa no puede comerse algo. Carece de
+                            sentido semántico.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-center">
+                    <div class="schema-box border-info">
+                        <div style="font-size: 3rem;">📖 vs 🧠</div>
+                        <h4 class="text-info mt-3">Concepto teórico</h4>
+                        <p class="fs-4 mt-3">
+                            <span class="text-white">"Mientras el sintáctico valida la <strong
+                                    class="text-success">forma</strong>;"</span><br>
+                            <span class="text-warning">"El semántico valida el <strong
+                                    class="text-danger">significado</strong>."</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. SYMBOL TABLES -->
+    <section class="slide">
+        <div class="panel">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="mb-4">2. Tabla de símbolos 🧾</h2>
+                    <p class="fs-5">
+                        El compilador necesita "recordar" a todos los actores involucrados. Esto se logra mediante la
+                        <strong>Tabla de símbolos</strong>.
+                    </p>
+                    <div class="p-4 border border-secondary rounded mt-3" style="background: rgba(255,255,255,0.05);">
+                        <h4 class="text-accent">Analogía: el directorio telefónico</h4>
+                        <p class="mb-0">
+                            Si el código dice <code class="inline">escribir(edad);</code>, el compilador debe ir a su
+                            directorio y buscar "edad":
+                            <em>¿quién es edad? ¿es un número, un texto? ¿en qué dónde vive (scope)?</em>
+                        </p>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="schema-box bg-dark">
+                        <h4 class="text-warning">¿Qué información guarda?</h4>
+                        <ul class="text-start fs-5 mt-4">
+                            <li><strong>Identificador:</strong> El nombre de la variable (Ejemplo:
+                                <em>'radio_circulo'</em>).
+                            </li>
+                            <li><strong>Tipo de dato:</strong> Integer, Real, Boolean...</li>
+                            <li><strong>Scope:</strong> ¿Está en un bloque específico o Global?</li>
+                            <li><strong>Metadatos:</strong> Conteo de uso, estado de inicialización, si es un array,
+                                etc.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. OPERACIONES DE LA TABLA -->
+    <section class="slide">
+        <div class="panel text-center">
+            <h2>Operaciones básicas en la tabla ⚙️</h2>
+            <p class="fs-4 text-sec mb-5">El funcionamiento interno de nuestro "directorio" depende de 2 acciones.</p>
+
+            <div class="row justify-content-center gap-4">
+                <div class="col-md-5">
+                    <div class="schema-box border-success">
+                        <h3 class="text-success"><code>insert(symbol)</code></h3>
+                        <p class="fs-5 mt-3">Registrar un nuevo habitante.</p>
+                        <hr class="border-secondary">
+                        <p class="text-start mb-0">
+                            Cuando leemos <code class="inline">var x: int;</code> guardamos a X.<br><br>
+                            ⚠️ <strong>Punto crítico:</strong> Evita <em>Duplicados</em>. Falla si intentas registrar a
+                            alguien en un lugar (scope) donde ya existe otro con exactamente el mismo ID.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="schema-box border-warning">
+                        <h3 class="text-warning"><code>lookup(name)</code></h3>
+                        <p class="fs-5 mt-3">"Llamar a un habitante".</p>
+                        <hr class="border-secondary">
+                        <p class="text-start mb-0">
+                            Cuando leemos <code class="inline">y := x + 1;</code> buscamos a X y a Y.<br><br>
+                            ⚠️ <strong>Punto crítico:</strong> Previene <em>variables no declaradas</em>. Si intentamos
+                            llamar a alguien que no está insertado en el directorio, se dispara el error.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. SCOPE Y NAME RESOLUTION -->
+    <section class="slide">
+        <div class="panel">
+            <h2 class="text-center mb-4">3. Scope y Name Resolution 🧬</h2>
+            <div class="row align-items-center mt-3">
+                <div class="col-lg-6">
+                    <h4 class="text-info">Analogía del hotel</h4>
+                    <p class="fs-5">
+                        Imagina que tienes a una persona llamada "Juan" trabajando en la recepción <strong>(Scope
+                            global)</strong>, y en la habitación 101 hay un huésped también llamado "Juan"
+                        <strong>(Scope local)</strong>.
+                    </p>
+                    <p class="fs-5">
+                        A esto se le llama <strong>shadowing</strong> (sombreado/ocultamiento). Cuando alguien grita
+                        "Juan" desde la Hab. 101, responde el huésped interno, bloqueando al global.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="schema-box text-start px-4">
+                        <h4 class="text-accent text-center mb-4">Jerarquía de búsqueda</h4>
+                        <p class="fs-5 mb-3">
+                            Para encontrar a la variable correcta, el compilador usa una <strong>pila (stack)</strong>:
+                        </p>
+                        <ol class="fs-5 mb-0" style="color:var(--highlight)">
+                            <li><span class="text-white">Busca primero en el <strong>Scope local actual</strong>
+                                    (habitación).</span></li>
+                            <li><span class="text-white">Si no está, <strong>sube de nivel</strong> buscando al padre
+                                    inmediato.</span></li>
+                            <li><span class="text-white">Prosigue así hasta llegar al <strong>Scope
+                                        global</strong>.</span></li>
+                            <li><span class="text-white">Si no la encuentra allí, el código es inválido.</span></li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. TYPE CHECKING -->
+    <section class="slide">
+        <div class="panel">
+            <h2 class="text-center mb-4">4. Comprobación de tipos 🔌</h2>
+            <div class="row align-items-center">
+                <div class="col-md-5 text-center">
+                    <div style="font-size: 5rem; margin-bottom: 1rem;">🔀 🔌</div>
+                    <div class="p-3 bg-dark rounded border border-secondary text-start mx-auto"
+                        style="max-width:350px;">
+                        <h5 class="text-highlight">Analogía tecnológica:</h5>
+                        <p class="small mb-0 text-white">
+                            Intentar asignar una cadena de texto a un entero es como tratar de conectar un <strong>USB
+                                tipo C</strong> en un puerto <strong>VGA</strong>; físicamente no son
+                            compatibles por diseño de hardware (tipos).
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="schema-box text-start px-4">
+                        <h4 class="text-success mb-3">Definición teórica</h4>
+                        <p class="fs-5">Un <strong>tipo</strong>, en términos de compiladores, no es más que:<br>
+                            Un <em>conjunto de valores</em> + Un <em>conjunto de operaciones válidas</em>.
+                        </p>
+                        <ul class="mt-3">
+                            <li class="fs-5 mb-2"><strong>Static checking (estático):</strong> Es revisar todas las
+                                conexiones (código fuerte) antes de prender el dispositivo. Es infalible y ocurre en la
+                                compilación.</li>
+                            <li class="fs-5"><strong>Dynamic checking (dinámico):</strong> Es permitir que el sistema
+                                funcione y verificar los tipos al momento de que algo ocurre (en ejecución). Más
+                                abierto, pero puede crashear.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. INFERENCIA Y REGLAS -->
+    <section class="slide">
+        <div class="panel align-items-center text-center">
+            <h2>5. Inferencia de tipos y sentencias WF 🧮</h2>
+            <p class="fs-5 text-sec mb-4">¿Cómo sabe el compilador si una suma es válida?</p>
+
+            <div class="schema-box border-warning bg-dark p-4 mx-auto" style="max-width: 80%;">
+                <h4 class="text-warning">Inference rules (lógica matemática abstracta)</h4>
+                <p class="fs-5">Se formula mediante: <code>⊢ e : T</code> (la expresión 'e' devuelve un tipo 'T').</p>
+                <div class="my-3 text-white fs-5 font-monospace border-bottom border-top border-secondary py-2"
+                    style="background:#000;">
+                    Si <code>⊢ e1: integer</code> &nbsp;y&nbsp; <code>⊢ e2: integer</code> &nbsp;=&gt;&nbsp;
+                    <code>⊢ e1 + e2 : integer</code>
+                </div>
+
+                <h4 class="text-info mt-4">Widening vs narrowing (promoción de tipos)</h4>
+                <p class="text-start mx-auto fs-5" style="max-width: 95%;">
+                    <strong>Analogía:</strong> Puedes vaciar el contenido de una botella de 1 Litro en un termo de 2
+                    litros (seguro), pero no al revés porque se desbordaría.<br><br>
+                    En la teoría de compiladores esto tiene reglas estrictas implementadas en nuestro simulador:<br>
+                    ✅ <strong>Promoción segura (widening):</strong> Asignar de <code>integer → real</code>. Un entero
+                    original ("1 litro") cabe perfectamente en la memoria de un real. Pascal lo acepta y promociona
+                    silenciosamente (ejemplo: <code>50</code> se vuelve <code>50.0</code>).<br>
+                    ❌ <strong>Reducción peligrosa (narrowing):</strong> Asignar de <code>real → integer</code> está
+                    <strong>prohibido</strong>. El bloque semántico rechaza la operación porque el lenguaje no puede
+                    tomar la decisión ambigua de qué hacer con los decimales perdidos <em>(¿truncar? ¿redondear?)</em>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. DEFENSA TÉCNICA -->
+    <section class="slide">
+        <div class="panel text-center">
+            <h2>Nuestra implementación ⚙️</h2>
+            <p class="fs-5 text-sec mb-4">¿Cómo transpolamos toda esta teoría a nuestra herramienta web?</p>
+
+            <div class="row mt-4 justify-content-center">
+                <div class="col-md-5 text-start">
+                    <div class="schema-box border-start border-4 border-info h-100 px-4">
+                        <h4 class="text-info">Gestor base: PHP backend</h4>
+                        <p>No contamos con un <em>parser</em> rígido de C, Java o Python que construya un árbol (AST)
+                            tradicional.
+                            A cambio, mitigamos esto extrayendo <em>tokens</em> (variables, funcionamientos, tipos) de
+                            forma recursiva a través de potentes expresiones <strong>Regex (expresiones
+                                regulares)</strong> en PHP.</p>
+                        <p class="mb-0">Nuestra clase <code>SymbolTable()</code> incluye arreglos multidimensionales que
+                            encarnan plenamente el comportamiento de <strong>`insert()`</strong> y
+                            <strong>`lookup()`</strong> exigidos por la teoría de autómatas.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-5 text-start">
+                    <div class="schema-box border-start border-4 border-warning h-100 px-4">
+                        <h4 class="text-warning">Pila de scopes por stack array</h4>
+                        <p>Para lidiar con el <em>shadowing</em> expuesto previamente, monitoreamos las palabras clave
+                            del programa (<code class="inline">BEGIN</code>, <code class="inline">END</code>, <code
+                                class="inline">FUNCTION</code>).</p>
+                        <p class="mb-0">Al entrar a un bloque, PHP introduce un estado local al "array stack" logrando
+                            aislar variables temporales en su memoria; y al salir, las expulsa (pop). Esto emula
+                            milimétricamente el "scope control" necesario sin requerir librerías externas complejas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. PRUEBA 1 -->
+    <section class="slide">
+        <div class="panel">
+            <h2>🔍 Caso 1: Variables no declaradas y duplicadas</h2>
+            <p class="fs-5">El chequeo principal de llamadas a objetos en el aire o repeticiones ilegales de identidad.
+            </p>
+
+            <div class="code-container mt-3">
+                <button class="copy-btn" onclick="copyCode(this, 'code1')">Copiar</button>
+                <pre><code id="code1">program PruebaDuplicados;
+var
+  a: integer;
+  b: string;
+  a: real; // ERROR: La variable 'a' ya ha sido declarada.
+begin
+  a := 10;
+  x := 50; // ERROR: La variable 'x' no está declarada.
+end.</code></pre>
+            </div>
+            <p class="text-warning mt-3">👉 <strong>Explicación:</strong> <code>insert(a)</code> falla porque ya
+                existía. Al final, <code>lookup(x)</code> arroja fatal frame porque el registro de "X" jamás existió ni
+                local ni globalmente.</p>
+        </div>
+    </section>
+
+    <!-- 10. PRUEBA 2 -->
+    <section class="slide">
+        <div class="panel">
+            <h2>🔍 Caso 2: Type checking y promoción de tipos</h2>
+            <p class="fs-5">Diferenciación entre el "cable HDMI y el USB", y cómo funciona el "termo más grande".</p>
+
+            <div class="code-container mt-3">
+                <button class="copy-btn" onclick="copyCode(this, 'code2')">Copiar</button>
+                <pre><code id="code2">program PruebaDeTipos;
+var
+  clave_num: integer;
+  cadena_txt: string;
+  precio: real;
+begin
+  clave_num := 500;
+  cadena_txt := 'PruebaTexto';
+  
+  clave_num := cadena_txt; // ERROR: Conflicto - Quieres poner String en un Integer.
+  
+  // Promoción Segura:
+  precio := clave_num; // ÉXITO: Integer promovido a Real con seguridad.
+end.</code></pre>
+            </div>
+            <p class="text-success mt-3">👉 <strong>Explicación:</strong> Nuestra herramienta aprueba
+                <code>precio := clave_num</code> validando las reglas matemáticas de inferencia de subtipos esperadas
+                por la teoría.
+            </p>
+        </div>
+    </section>
+
+    <!-- 11. PRUEBA 3 -->
+    <section class="slide">
+        <div class="panel">
+            <h2>🔍 Caso 3: Scope resolution (Ambigüedad y Shadowing)</h2>
+            <p class="fs-5">Analicemos cómo detecta las variables globales "sombreadas" por locales.</p>
+
+            <div class="code-container mt-3">
+                <button class="copy-btn" onclick="copyCode(this, 'code3')">Copiar</button>
+                <pre><code id="code3">program PruebaScopes;
+var
+  salud: integer; 
+
+procedure nivelInterno;
+var
+  salud: string; // Shadowing (mismo nombre, diferente tipo y scope)
+begin
+  salud := 'Alta'; 
+end;
+
+begin
+  salud := 100; 
+end.</code></pre>
+            </div>
+            <p class="text-danger mt-3">👉 <strong>Explicación:</strong> Nuestro analizador es <strong>muy
+                    estricto</strong>. Lanza errores de ❌ <strong>Ambigüedad por shadowing</strong> y ❌
+                <strong>Ambigüedad de tipo</strong> para evitar confusiones de contexto. Además, dispara advertencias
+                (⚠️) al notar que estas variables son instanciadas pero nunca leídas.
+            </p>
+        </div>
+    </section>
+
+    <!-- 12. PRUEBA 4 -->
+    <section class="slide">
+        <div class="panel">
+            <h2>🔍 Caso 4: control semántico de ciclos</h2>
+            <p class="fs-5">Detección de manipulación indebida o bucles potencialmente infinitos.</p>
+
+            <div class="code-container mt-3">
+                <button class="copy-btn" onclick="copyCode(this, 'code4')">Copiar</button>
+                <pre><code id="code4">program ControlDeBucle;
+var
+  iterador: integer;
+  x: integer;
+begin
+  for iterador := 1 to 10 do
+  begin
+    x := 50;
+    iterador := iterador + 2; // ERROR GRAVE SEVERO SEMÁNTICO
+  end;
+end.</code></pre>
+            </div>
+            <p class="text-danger mt-3">👉 <strong>Explicación:</strong> en Pascal estándar, está prohibido alterar la
+                variable de control dentro del propio <code>for</code>. Nuestra herramienta inyecta la variable
+                "iterador" en una mini lista negra de "solo lectura" (Read-Only) hasta el <code>end</code> del bucle, y
+                detecta cuando el usuario quiere escribirle.</p>
+        </div>
+    </section>
+
+    <!-- 13. ANÁLISIS CRÍTICO -->
+    <section class="slide">
+        <div class="panel">
+            <h2 class="text-center">Análisis crítico de resultados 📊</h2>
+            <div class="row mt-4">
+                <div class="col-md-6 px-4">
+                    <h4 class="text-success mb-3">✅ Éxitos alcanzados</h4>
+                    <ul class="fs-5">
+                        <li><strong class="text-white">Robustez lógica:</strong> Los checks detienen la hibridación,
+                            evitan bucles extraños del for y preveen crashes lógicos pre-ejecución.</li>
+                        <li><strong class="text-white">Interfaz clara al usuario:</strong> En lugar de caer con un error
+                            fatal silencioso, la salida frontal expone un dashboard claro que indica la línea exacta e
+                            instrucción violada.</li>
+                        <li><strong class="text-white">Fidelidad teórica:</strong> se adecua exactamente a las
+                            exigencias teóricas del temario de Lenguajes y Autómatas II.</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 px-4 border-start border-secondary">
+                    <h4 class="text-danger mb-3">⚠️ Oportunidades (limitaciones)</h4>
+                    <ul class="fs-5">
+                        <li><strong class="text-white">Ausencia de LR/AST:</strong> Debido a depender de búsquedas
+                            iterativas vía expresiones regulares, sentencias exageradamente concatenadas o en formatos
+                            multilínea visualmente "destrozados" pueden colapsar el lexer antes de siquiera llegar a la
+                            etapa semántica.</li>
+                        <li><strong class="text-white">Propagación múltiple:</strong> Un error estructural a veces puede
+                            derramar falsas anomalías de tipos hacia las variables colindantes.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 14. TRABAJO COLABORATIVO Y ÉTICA IA -->
+    <section class="slide">
+        <div class="panel">
+            <h2 class="text-center mb-4">Trabajo colaborativo y uso de I.A. 🤝🤖</h2>
+
+            <div class="row g-3 text-start mb-4">
+                <div class="col-md-3">
+                    <div class="p-3 border rounded h-100" style="background: rgba(0,0,0,0.5);">
+                        <h5 class="text-highlight mb-1">Pedro Cauich Pat</h5>
+                        <p class="small text-white">Núcleo central. Construcción y codificación en PHP del ámbito de
+                            variables, validación de inferencias de tipo seguras y estructura de la Tabla de
+                            Símbolos.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded h-100" style="background: rgba(0,0,0,0.5);">
+                        <h5 class="text-info mb-1">Brenda Chan Xooc</h5>
+                        <p class="small text-white">FrontEnd. Diseño UI del simulador y panel de reporte
+                            semántico. Responsabilidad total de la compatibilidad asíncrona web y presentación visual.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded h-100" style="background: rgba(0,0,0,0.5);">
+                        <h5 class="text-accent mb-1">Danneshe Corona Noh</h5>
+                        <p class="small text-white">Calidad y pruebas. Desarrollo de batería de
+                            ejemplos de choque y casos límite para detectar errores en la lógica de control.</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded h-100" style="background: rgba(0,0,0,0.5);">
+                        <h5 class="text-success mb-1">Reyna Estrella Dzul</h5>
+                        <p class="small text-white">Documentación y presentación. Consolidación de información en el
+                            manual de usuario web, validación del contenido con la rúbrica y formato expositivo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 rounded border border-warning text-center mx-auto"
+                style="background: rgba(255, 158, 0, 0.1); max-width: 90%;">
+                <h4 class="text-warning mb-2">Uso ético de la inteligencia artificial</h4>
+                <p class="fs-6 mb-0 text-white">Hemos empleado esquemas conversacionales IA exclusivamente como
+                    asistencia de <em>pair-programming</em> enfocada en el depurado de expresiones regulares en PHP.
+                    <strong>Ningún fragmento metodológico del núcleo central fue "copiado y arrojado" a producción a
+                        ciegas.</strong> Toda instrucción del código está bajo el dominio del
+                    conocimiento analítico del equipo.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTROLES DE NAVEGACIÓN -->
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="globalChange(-1)">◄</button>
+        <div class="page-indicator">
+            <input type="number" id="slideInput" value="1" min="1" max="14" onchange="jumpToSlide(this.value)">
+            / <span id="totalSlides">14</span>
+        </div>
+        <button class="nav-btn" onclick="globalChange(1)">►</button>
+    </div>
+
+    <script>
+        // --- CONTROL DE DIAPOSITIVAS ---
+        const slides = document.querySelectorAll(".slide");
+        let slideIndex = 0;
+        document.getElementById("totalSlides").innerText = slides.length;
+        document.getElementById("slideInput").max = slides.length;
+
+        function globalChange(d) {
+            slides[slideIndex].classList.remove("active");
+            slideIndex = (slideIndex + d + slides.length) % slides.length;
+            slides[slideIndex].classList.add("active");
+            document.getElementById("slideInput").value = slideIndex + 1;
+        }
+
+        function jumpToSlide(val) {
+            let newIndex = parseInt(val) - 1;
+            if (newIndex >= 0 && newIndex < slides.length) {
+                slides[slideIndex].classList.remove("active");
+                slideIndex = newIndex;
+                slides[slideIndex].classList.add("active");
+            } else {
+                document.getElementById("slideInput").value = slideIndex + 1;
+            }
+        }
+
+        document.addEventListener("keydown", e => {
+            if (e.key === "ArrowRight") globalChange(1);
+            if (e.key === "ArrowLeft") globalChange(-1);
+        });
+
+        // Copy Feature
+        function copyCode(btn, codeId) {
+            const text = document.getElementById(codeId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const ogText = btn.innerText;
+                btn.innerText = "Copiado!";
+                btn.style.background = "#fff";
+                btn.style.color = "var(--bg-deep)";
+                setTimeout(() => {
+                    btn.innerText = ogText;
+                    btn.style.background = "var(--bg-purple)";
+                    btn.style.color = "var(--accent)";
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+
+</html>
