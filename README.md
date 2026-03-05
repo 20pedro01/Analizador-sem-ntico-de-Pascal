@@ -362,8 +362,9 @@ end.
 
 ## 📖 Manual de usuario
 
-Ver el archivo `docs/manual_usuario.txt` para instrucciones detalladas paso a paso con capturas de ejemplo.
+Ver el archivo `docs/Manual de usuario - Analizador Pascal.pdf` para instrucciones detalladas paso a paso con capturas de ejemplo.
 
 ---
 
 *Proyecto desarrollado para Lenguajes y Autómatas II — 2026*
+
