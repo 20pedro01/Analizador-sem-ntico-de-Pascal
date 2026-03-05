@@ -1,4 +1,4 @@
-# 🔮 Analizador Semántico para Pascal
+# Analizador Semántico para Pascal
 
 ## Lenguajes y Autómatas II
 
@@ -367,4 +367,5 @@ Ver el archivo `docs/Manual de usuario - Analizador Pascal.pdf` para instruccion
 ---
 
 *Proyecto desarrollado para Lenguajes y Autómatas II — 2026*
+
 
